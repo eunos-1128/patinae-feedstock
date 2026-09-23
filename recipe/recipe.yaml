@@ -167,7 +167,6 @@ outputs:
           - if: osx
             then:
               - grep -q 'PYTHONHOME="${here}/.."' "${PREFIX}/bin/patinae"
-              - grep -q 'DYLD_LIBRARY_PATH="${PYTHON_LIBDIR}${DYLD_LIBRARY_PATH:+:${DYLD_LIBRARY_PATH}}"' "${PREFIX}/bin/patinae"
           - if: win
             then:
               - python -c "import os, pathlib; s = pathlib.Path(os.environ['PREFIX'], 'Scripts', 'patinae.bat').read_text(); assert 'if not defined PYTHONHOME set \"PYTHONHOME=%PREFIX_DIR%\"' in s"

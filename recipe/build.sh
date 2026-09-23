@@ -128,6 +128,11 @@ else
 fi
 
 # Install the user-facing desktop wrapper as `patinae`.
+PYTHON_LIBDIR=""
+if [[ "${target_platform}" == linux-* || "${target_platform}" == osx-* ]]; then
+  PYTHON_LIBDIR="$("${PYTHON}" -c 'import sysconfig; print(sysconfig.get_config_var("LIBDIR") or "")')"
+fi
+
 cat > "${PREFIX}/bin/patinae" <<'EOF'
 #!/bin/sh
 script_dir=$(dirname "$(command -v "$0" 2>/dev/null || printf '%s\n' "$0")")
@@ -140,22 +145,23 @@ if [ "${PYTHONHOME+set}" != "set" ]; then
   PYTHONHOME="${here}/.."
   export PYTHONHOME
 fi
+EOF
 
-if [ -x "${here}/../bin/python3" ]; then
-  PYTHON_LIBDIR="$("${here}/../bin/python3" -c 'import sysconfig; print(sysconfig.get_config_var("LIBDIR") or "")' 2>/dev/null)"
-
-  if [ -n "${PYTHON_LIBDIR}" ]; then
-    if [ "$(uname -s)" = "Linux" ]; then
-      # Linux must locate libpython before an embedded interpreter can use PYTHONHOME.
-      LD_LIBRARY_PATH="${PYTHON_LIBDIR}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
-      export LD_LIBRARY_PATH
-    elif [ "$(uname -s)" = "Darwin" ]; then
-      # Keep parity with Linux launcher behavior for embedded libpython lookup.
-      DYLD_LIBRARY_PATH="${PYTHON_LIBDIR}${DYLD_LIBRARY_PATH:+:${DYLD_LIBRARY_PATH}}"
-      export DYLD_LIBRARY_PATH
-    fi
-  fi
+if [[ "${target_platform}" == linux-* && -n "${PYTHON_LIBDIR}" ]]; then
+  cat >> "${PREFIX}/bin/patinae" <<EOF
+# Linux must locate libpython before an embedded interpreter can use PYTHONHOME.
+LD_LIBRARY_PATH="${PYTHON_LIBDIR}\${LD_LIBRARY_PATH:+:\${LD_LIBRARY_PATH}}"
+export LD_LIBRARY_PATH
+EOF
+elif [[ "${target_platform}" == osx-* && -n "${PYTHON_LIBDIR}" ]]; then
+  cat >> "${PREFIX}/bin/patinae" <<EOF
+# Keep parity with Linux launcher behavior for embedded libpython lookup.
+DYLD_LIBRARY_PATH="${PYTHON_LIBDIR}\${DYLD_LIBRARY_PATH:+:\${DYLD_LIBRARY_PATH}}"
+export DYLD_LIBRARY_PATH
+EOF
 fi
+
+cat >> "${PREFIX}/bin/patinae" <<'EOF'
 exec "${here}/../libexec/patinae/bin/patinae" "$@"
 EOF
 chmod +x "${PREFIX}/bin/patinae"

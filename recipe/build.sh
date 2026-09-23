@@ -152,7 +152,7 @@ if [[ "${target_platform}" == linux-* && -n "${PYTHON_LIBDIR}" ]]; then
 # Linux must locate libpython before an embedded interpreter can use PYTHONHOME.
 case ":\${LD_LIBRARY_PATH:-}:" in
   *:"${PYTHON_LIBDIR}":*) ;;
-  *) LD_LIBRARY_PATH="\${LD_LIBRARY_PATH:+\${LD_LIBRARY_PATH}:}${PYTHON_LIBDIR}" ;;
+  *) LD_LIBRARY_PATH="${PYTHON_LIBDIR}\${LD_LIBRARY_PATH:+:\${LD_LIBRARY_PATH}}" ;;
 esac
 export LD_LIBRARY_PATH
 EOF

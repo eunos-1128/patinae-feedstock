@@ -227,7 +227,7 @@ del /F /Q ^
 >> "%PREFIX%\Scripts\patinae.bat" echo set "SCRIPT_DIR=%%~dp0"
 >> "%PREFIX%\Scripts\patinae.bat" echo set "PREFIX_DIR=%%SCRIPT_DIR%%.."
 >> "%PREFIX%\Scripts\patinae.bat" echo if not defined PATINAE_PLUGIN_DIR set "PATINAE_PLUGIN_DIR=%%PREFIX_DIR%%\libexec\patinae\plugins"
->> "%PREFIX%\Scripts\patinae.bat" echo if not defined PYTHONHOME rem Desktop launchers skip conda activation, so set a deterministic Python prefix.
+>> "%PREFIX%\Scripts\patinae.bat" echo rem Desktop launchers skip conda activation, so set a deterministic Python prefix.
 >> "%PREFIX%\Scripts\patinae.bat" echo if not defined PYTHONHOME set "PYTHONHOME=%%PREFIX_DIR%%"
 >> "%PREFIX%\Scripts\patinae.bat" echo "%%PREFIX_DIR%%\libexec\patinae\bin\patinae.exe" %%*
 >> "%PREFIX%\Scripts\patinae.bat" echo exit /b %%ERRORLEVEL%%

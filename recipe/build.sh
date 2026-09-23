@@ -134,6 +134,28 @@ script_dir=$(dirname "$(command -v "$0" 2>/dev/null || printf '%s\n' "$0")")
 here=$(CDPATH= cd "${script_dir}" && pwd)
 PATINAE_PLUGIN_DIR="${PATINAE_PLUGIN_DIR:-${here}/../libexec/patinae/plugins}"
 export PATINAE_PLUGIN_DIR
+if [ "${PYTHONHOME+set}" != "set" ]; then
+  # Desktop launchers do not activate the conda environment, so provide a
+  # deterministic Python prefix for patinae's embedded Python discovery.
+  PYTHONHOME="${here}/.."
+  export PYTHONHOME
+fi
+
+if [ -x "${here}/../bin/python3" ]; then
+  PYTHON_LIBDIR="$("${here}/../bin/python3" -c 'import sysconfig; print(sysconfig.get_config_var("LIBDIR") or "")' 2>/dev/null)"
+
+  if [ -n "${PYTHON_LIBDIR}" ]; then
+    if [ "$(uname -s)" = "Linux" ]; then
+      # Linux must locate libpython before an embedded interpreter can use PYTHONHOME.
+      LD_LIBRARY_PATH="${PYTHON_LIBDIR}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+      export LD_LIBRARY_PATH
+    elif [ "$(uname -s)" = "Darwin" ]; then
+      # Keep parity with Linux launcher behavior for embedded libpython lookup.
+      DYLD_LIBRARY_PATH="${PYTHON_LIBDIR}${DYLD_LIBRARY_PATH:+:${DYLD_LIBRARY_PATH}}"
+      export DYLD_LIBRARY_PATH
+    fi
+  fi
+fi
 exec "${here}/../libexec/patinae/bin/patinae" "$@"
 EOF
 chmod +x "${PREFIX}/bin/patinae"

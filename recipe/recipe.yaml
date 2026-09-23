@@ -159,9 +159,18 @@ outputs:
           - if: linux
             then:
               - sh -c 'ldd "${PREFIX}/libexec/patinae/bin/patinae" > ldd.txt && ! grep -q "not found" ldd.txt'
+              - grep -q 'PYTHONHOME="${here}/.."' "${PREFIX}/bin/patinae"
+              - grep -q 'LD_LIBRARY_PATH="${PYTHON_LIBDIR}${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"' "${PREFIX}/bin/patinae"
           - if: osx or win
             then:
               - python test_runtime_deps.py
+          - if: osx
+            then:
+              - grep -q 'PYTHONHOME="${here}/.."' "${PREFIX}/bin/patinae"
+              - grep -q 'DYLD_LIBRARY_PATH="${PYTHON_LIBDIR}${DYLD_LIBRARY_PATH:+:${DYLD_LIBRARY_PATH}}"' "${PREFIX}/bin/patinae"
+          - if: win
+            then:
+              - python -c "import os, pathlib; s = pathlib.Path(os.environ['PREFIX'], 'Scripts', 'patinae.bat').read_text(); assert 'if not defined PYTHONHOME set \"PYTHONHOME=%PREFIX_DIR%\"' in s"
         files:
           recipe:
             - test_runtime_deps.py
